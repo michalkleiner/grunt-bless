@@ -12,6 +12,7 @@ module.exports = function(grunt) {
 		bless = require('bless'),
 		util = require('util'),
 		chalk = require('chalk'),
+		crypto = require('crypto'),
 		OVERWRITE_ERROR = 'The destination is the same as the source for file ',
 		OVERWRITE_EXCEPTION = 'Cowardly refusing to overwrite the source file.';
 
@@ -19,6 +20,7 @@ module.exports = function(grunt) {
 
 		var options = this.options({
 			cacheBuster: true,
+			cacheBusterUseHash: false,
 			cleanup: true,
 			compress: false,
 			logCount: false,
@@ -55,7 +57,14 @@ module.exports = function(grunt) {
 			} else {
 				data += grunt.file.read(inputFile);
 			}
-
+			
+			if (options.cacheBuster && options.cacheBusterUseHash) {
+			    var hash = crypto.createHash('md5'); // md5 is still good enough to identify file's content
+			    hash.setEncoding('hex');
+			    hash.write(data);
+			    hash.end();
+				options.cacheBusterParam = hash.read();
+			}
 
 			new (bless.Parser)({
 				output: outPutfileName,
